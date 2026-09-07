@@ -1,14 +1,9 @@
 // ============================================================================
-// DEMO-ONLY SCRIPT — TEMPORARY INPUT METHOD FOR XR DEVICE SIMULATOR
+// DEMO-ONLY SCRIPT - TEMPORARY INPUT METHOD FOR XR DEVICE SIMULATOR
 // Simulates a realistic basketball shot arc and push-force using the
 // XR Simulator hand alignment and mouse speed.
 //
-// WHEN REAL VR HARDWARE IS AVAILABLE:
-//   1. Remove this component from the BasketBall GameObject.
-//   2. Re-enable XRGrabInteractable on the ball.
-//   3. Add XRGrabTrajectoryDriver.cs instead — same TrajectoryLogger calls,
-//      triggered by real selectEntered/selectExited events.
-// No changes needed in TrajectoryLogger.cs or BasketDetector.cs.
+// UPDATED: Now supports Left Hand (Q), Right Hand (E), or Both Hands (Q+E).
 // ============================================================================
 
 using UnityEngine;
@@ -16,65 +11,90 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class KeyboardGrabThrow : MonoBehaviour
 {
-    [Header("Grab Settings")]
-    [Tooltip("Key to hold/release the ball (e.g., G)")]
-    [SerializeField] private KeyCode grabKey = KeyCode.G;
-    [SerializeField] private Transform handAnchor; // Assign the Right Controller here
-    [SerializeField] private Vector3 holdOffset = new Vector3(0f, 0.1f, 0.2f); // Holds it slightly higher/forward
+    [Header("Grab Settings (Left/Right/Both)")]
+    [Tooltip("Key to hold/release with LEFT hand")]
+    [SerializeField] private KeyCode leftGrabKey = KeyCode.Q;
+    [Tooltip("Key to hold/release with RIGHT hand")]
+    [SerializeField] private KeyCode rightGrabKey = KeyCode.E;
+
+    [SerializeField] private Transform leftHandAnchor;  // Assign Left Controller
+    [SerializeField] private Transform rightHandAnchor; // Assign Right Controller
+    [SerializeField] private Vector3 holdOffset = new Vector3(0f, 0.1f, 0.2f);
 
     [Header("Basketball Physics Tuning")]
-    [Tooltip("How much to boost your mouse speed to reach a 10-foot hoop. (7 to 10 m/s is ideal for basketball)")]
     [SerializeField] private float throwPowerMultiplier = 2.2f;
-
-    [Tooltip("Min speed so the ball never drops straight down even on a slow release")]
     [SerializeField] private float minThrowSpeed = 7.5f;
-
-    [Tooltip("Max speed cap to prevent the ball from launching into orbit")]
     [SerializeField] private float maxThrowSpeed = 13.0f;
-
-    [Tooltip("Injects a guaranteed upward angle/loft to simulate the 'Push' and 'Follow-Through' arc. (0.8 - 1.2 is ideal)")]
     [Range(0.2f, 1.8f)]
     [SerializeField] private float upwardArcBias = 1.0f;
-
-    [Tooltip("Multiplier for wrist rotation applied to the ball's spin")]
     [SerializeField] private float angularVelocityMultiplier = 1.0f;
+
+    [Header("Data Collection: Manual Power Tiers (hold while releasing)")]
+    [SerializeField] private KeyCode weakThrowKey = KeyCode.Alpha1;
+    [SerializeField] private float weakThrowSpeed = 5.0f;
+
+    [SerializeField] private KeyCode normalThrowKey = KeyCode.Alpha2;
+    [SerializeField] private float normalThrowSpeed = 8.5f;
+
+    [SerializeField] private KeyCode hardThrowKey = KeyCode.Alpha3;
+    [SerializeField] private float hardThrowSpeed = 11.0f;
+
+    [SerializeField] private KeyCode jerkyThrowKey = KeyCode.Alpha4;
+    [SerializeField] private float jerkyAngularNoise = 15f;
+
+    [Header("Data Collection: Manual Aim Bias (hold while releasing)")]
+    [SerializeField] private KeyCode aimLeftKey = KeyCode.A;
+    [SerializeField] private KeyCode aimRightKey = KeyCode.D;
+    [SerializeField] private float aimBiasStrength = 0.35f;
 
     [Header("Data Logging")]
     [SerializeField] private TrajectoryLogger trajectoryLogger;
 
     private Rigidbody rb;
-    private bool isHeld = false;
+    private bool isLeftHeld = false;
+    private bool isRightHeld = false;
+    private bool IsHeld => isLeftHeld || isRightHeld;
 
     // Tracking variables for speed calculations
     private Vector3 previousBallPosition;
     private Quaternion previousRotation;
-
     private Vector3 smoothedLinearVelocity;
     private Vector3 smoothedAngularVelocity;
+    private Vector3 currentAimDirection;
+    private Vector3 currentRightDirection;
+
+    // State tracking to prevent velocity spikes when switching hands
+    private int previousGrabState = 0; // 0=None, 1=Left, 2=Right, 3=Both
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         if (trajectoryLogger == null)
-        {
             trajectoryLogger = GetComponent<TrajectoryLogger>();
-        }
     }
 
     private void Update()
     {
-        // Detect Grab
-        if (Input.GetKeyDown(grabKey) && !isHeld)
+        bool wasHeld = IsHeld;
+
+        // Check Input
+        if (Input.GetKeyDown(leftGrabKey)) isLeftHeld = true;
+        if (Input.GetKeyUp(leftGrabKey)) isLeftHeld = false;
+
+        if (Input.GetKeyDown(rightGrabKey)) isRightHeld = true;
+        if (Input.GetKeyUp(rightGrabKey)) isRightHeld = false;
+
+        // Handle Grab/Release Transitions
+        if (!wasHeld && IsHeld)
         {
             Grab();
         }
-        // Detect Release
-        else if (Input.GetKeyUp(grabKey) && isHeld)
+        else if (wasHeld && !IsHeld)
         {
             Release();
         }
 
-        if (isHeld)
+        if (IsHeld)
         {
             FollowHandAndTrackVelocity();
         }
@@ -82,46 +102,77 @@ public class KeyboardGrabThrow : MonoBehaviour
 
     private void Grab()
     {
-        if (handAnchor == null)
+        if (leftHandAnchor == null || rightHandAnchor == null)
         {
-            Debug.LogWarning("[KeyboardGrabThrow] No Hand Anchor assigned — cannot grab.");
+            Debug.LogWarning("[KeyboardGrabThrow] Please assign BOTH Left and Right Hand Anchors in the Inspector.");
             return;
         }
 
-        if (trajectoryLogger != null && trajectoryLogger.SessionComplete)
-        {
-            Debug.Log("[KeyboardGrabThrow] Session complete — grab blocked.");
-            return;
-        }
+        if (trajectoryLogger != null && trajectoryLogger.SessionComplete) return;
 
-        isHeld = true;
         rb.useGravity = false;
         rb.isKinematic = true;
 
-        // Reset tracking so the first frame after grab doesn't produce a
-        // huge fake velocity spike (comparing to wherever the ball was before).
-        previousBallPosition = handAnchor.position + handAnchor.TransformDirection(holdOffset);
-        previousRotation = handAnchor.rotation;
         smoothedLinearVelocity = Vector3.zero;
         smoothedAngularVelocity = Vector3.zero;
+        previousGrabState = GetCurrentGrabState();
 
         trajectoryLogger?.BeginRecording();
-
-        Debug.Log("[KeyboardGrabThrow] Ball grabbed.");
+        Debug.Log("[KeyboardGrabThrow] Ball grabbed. Release Q and/or E to throw.");
     }
 
     private void FollowHandAndTrackVelocity()
     {
-        Vector3 targetPos = handAnchor.position + handAnchor.TransformDirection(holdOffset);
+        Vector3 targetPos = Vector3.zero;
+        Quaternion targetRot = Quaternion.identity;
+
+        int currentGrabState = GetCurrentGrabState();
+
+        // Calculate Target Position & Rotation based on active hands
+        if (currentGrabState == 1) // Left Only
+        {
+            targetPos = leftHandAnchor.position + leftHandAnchor.TransformDirection(holdOffset);
+            targetRot = leftHandAnchor.rotation;
+            currentAimDirection = leftHandAnchor.forward;
+            currentRightDirection = leftHandAnchor.right;
+        }
+        else if (currentGrabState == 2) // Right Only
+        {
+            targetPos = rightHandAnchor.position + rightHandAnchor.TransformDirection(holdOffset);
+            targetRot = rightHandAnchor.rotation;
+            currentAimDirection = rightHandAnchor.forward;
+            currentRightDirection = rightHandAnchor.right;
+        }
+        else if (currentGrabState == 3) // Both Hands
+        {
+            Vector3 lPos = leftHandAnchor.position + leftHandAnchor.TransformDirection(holdOffset);
+            Vector3 rPos = rightHandAnchor.position + rightHandAnchor.TransformDirection(holdOffset);
+
+            targetPos = Vector3.Lerp(lPos, rPos, 0.5f);
+            targetRot = Quaternion.Slerp(leftHandAnchor.rotation, rightHandAnchor.rotation, 0.5f);
+
+            currentAimDirection = Vector3.Lerp(leftHandAnchor.forward, rightHandAnchor.forward, 0.5f).normalized;
+            currentRightDirection = Vector3.Lerp(leftHandAnchor.right, rightHandAnchor.right, 0.5f).normalized;
+        }
+
+        // Apply Transform
+        transform.position = targetPos;
+        transform.rotation = targetRot;
+
+        // If we just changed hand states (e.g., 1 hand to 2 hands), skip velocity math for this frame to prevent spikes
+        if (currentGrabState != previousGrabState)
+        {
+            previousBallPosition = targetPos;
+            previousRotation = targetRot;
+            previousGrabState = currentGrabState;
+            return;
+        }
 
         // Measure real speed of movement
         Vector3 rawLinearVelocity = (targetPos - previousBallPosition) / Time.deltaTime;
 
-        transform.position = targetPos;
-        transform.rotation = handAnchor.rotation;
-
         // Track rotation (wrist spin)
-        Quaternion deltaRot = handAnchor.rotation * Quaternion.Inverse(previousRotation);
+        Quaternion deltaRot = targetRot * Quaternion.Inverse(previousRotation);
         deltaRot.ToAngleAxis(out float angleInDegrees, out Vector3 rotationAxis);
         if (angleInDegrees > 180f) angleInDegrees -= 360f;
         Vector3 rawAngularVelocity = rotationAxis * (angleInDegrees * Mathf.Deg2Rad / Time.deltaTime);
@@ -131,29 +182,64 @@ public class KeyboardGrabThrow : MonoBehaviour
         smoothedAngularVelocity = Vector3.Lerp(smoothedAngularVelocity, rawAngularVelocity, 10f * Time.deltaTime);
 
         previousBallPosition = targetPos;
-        previousRotation = handAnchor.rotation;
+        previousRotation = targetRot;
     }
 
     private void Release()
     {
-        isHeld = false;
         rb.isKinematic = false;
         rb.useGravity = true;
 
-        // 1. Calculate the SPEED (power) based on your swipe
-        float swipeSpeed = smoothedLinearVelocity.magnitude;
-        float finalSpeed = Mathf.Clamp(swipeSpeed * throwPowerMultiplier, minThrowSpeed, maxThrowSpeed);
+        float finalSpeed;
+        bool usedManualTier = true;
 
-        // 2. Calculate the DIRECTION: Hand forward direction + Upward Arc Bias (The Basketball Push)
-        Vector3 aimDirection = handAnchor.forward;
-        Vector3 throwDirection = (aimDirection + Vector3.up * upwardArcBias).normalized;
+        if (Input.GetKey(weakThrowKey)) finalSpeed = weakThrowSpeed;
+        else if (Input.GetKey(normalThrowKey)) finalSpeed = normalThrowSpeed;
+        else if (Input.GetKey(hardThrowKey)) finalSpeed = hardThrowSpeed;
+        else if (Input.GetKey(jerkyThrowKey)) finalSpeed = normalThrowSpeed;
+        else
+        {
+            usedManualTier = false;
+            float swipeSpeed = smoothedLinearVelocity.magnitude;
+            finalSpeed = Mathf.Clamp(swipeSpeed * throwPowerMultiplier, minThrowSpeed, maxThrowSpeed);
+        }
 
-        // 3. Apply the physical forces
+        float aimBias = 0f;
+        if (Input.GetKey(aimLeftKey)) aimBias -= aimBiasStrength;
+        if (Input.GetKey(aimRightKey)) aimBias += aimBiasStrength;
+
+        Vector3 throwDirection = (currentAimDirection + Vector3.up * upwardArcBias + currentRightDirection * aimBias).normalized;
+
+        Vector3 finalAngularVelocity;
+        if (Input.GetKey(jerkyThrowKey))
+        {
+            finalAngularVelocity = new Vector3(
+                Random.Range(-jerkyAngularNoise, jerkyAngularNoise),
+                Random.Range(-jerkyAngularNoise, jerkyAngularNoise),
+                Random.Range(-jerkyAngularNoise, jerkyAngularNoise));
+        }
+        else
+        {
+            finalAngularVelocity = smoothedAngularVelocity * angularVelocityMultiplier;
+        }
+
         rb.velocity = throwDirection * finalSpeed;
-        rb.angularVelocity = smoothedAngularVelocity * angularVelocityMultiplier;
+        rb.angularVelocity = finalAngularVelocity;
 
         trajectoryLogger?.StopRecordingAndSave();
+        previousGrabState = 0; // Reset
 
-        Debug.Log($"[KeyboardGrabThrow] Shot Released! Speed: {finalSpeed:F2} m/s (Swipe was {swipeSpeed:F2}), Direction: {throwDirection}");
+        Debug.Log($"[KeyboardGrabThrow] Shot Released! Speed: {finalSpeed:F2} m/s " +
+                  $"({(usedManualTier ? "manual tier" : "swipe-derived")}), " +
+                  $"AimBias: {aimBias:F2}");
+    }
+
+    // Helper to get integer state of hands
+    private int GetCurrentGrabState()
+    {
+        if (isLeftHeld && isRightHeld) return 3;
+        if (isRightHeld) return 2;
+        if (isLeftHeld) return 1;
+        return 0;
     }
 }

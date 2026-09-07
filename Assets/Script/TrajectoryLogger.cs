@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +18,7 @@ using UnityEngine;
 ///
 /// Velocity and angular velocity are computed from position/rotation deltas
 /// WHILE HELD (since a kinematic Rigidbody always reports zero physics
-/// velocity), and switch to real Rigidbody physics once thrown — so these
+/// velocity), and switch to real Rigidbody physics once thrown - so these
 /// columns are never spuriously zero during the important "wind-up" swing.
 /// </summary>
 public class TrajectoryLogger : MonoBehaviour
@@ -28,7 +29,7 @@ public class TrajectoryLogger : MonoBehaviour
 
     [Tooltip("The HMD/head transform (e.g. Main Camera under XR Origin), used to log a " +
              "body-relative reference frame each sample. ASSIGN THIS EXPLICITLY in the " +
-             "Inspector — Camera.main fallback only works if your camera is tagged MainCamera.")]
+             "Inspector - Camera.main fallback only works if your camera is tagged MainCamera.")]
     [SerializeField] private Transform headTransform;
 
     [Header("Sampling")]
@@ -66,6 +67,29 @@ public class TrajectoryLogger : MonoBehaviour
     public int SuccessfulShotCount => successfulShotCount;
     public int TrialNumber => trialNumber;
 
+    /// <summary>
+    /// Fires as soon as a throw's samples are ready (right after
+    /// StopRecordingAndSave passes the minimum-samples check), independent
+    /// of BasketDetector's physics-based outcome. Subscribe to this from
+    /// AICoachClient to send the trial to the AI backend for prediction
+    /// without waiting for RecordOutcome()/timeout.
+    /// </summary>
+    public event Action<List<PredictionSample>> OnThrowReadyForPrediction;
+
+    /// <summary>
+    /// Public, JSON-serializable sample shape matching exactly the field
+    /// names model_inference.py's FEATURE_COLS expects on the backend.
+    /// </summary>
+    [Serializable]
+    public class PredictionSample
+    {
+        public float hand_x, hand_y, hand_z;
+        public float hand_rot_x, hand_rot_y, hand_rot_z, hand_rot_w;
+        public float linear_vx, linear_vy, linear_vz;
+        public float linear_ax, linear_ay, linear_az;
+        public float angular_vx, angular_vy, angular_vz;
+    }
+
     private Rigidbody trackedRigidbody;
     private Coroutine recordingRoutine;
     private Coroutine outcomeTimeoutRoutine;
@@ -85,8 +109,6 @@ public class TrajectoryLogger : MonoBehaviour
     private readonly List<Sample> currentTrajectory = new List<Sample>();
     private float recordStartTime;
 
-    // Used to derive velocity/acceleration/angular velocity manually,
-    // since kinematic Rigidbodies report zero physics velocity.
     private Vector3 previousPosition;
     private Quaternion previousRotation;
     private Vector3 previousVelocity;
@@ -95,7 +117,6 @@ public class TrajectoryLogger : MonoBehaviour
     private List<Sample> pendingTrajectory = null;
     private int pendingTrialNumber;
 
-    // Single running session CSV — all throws get appended here as rows.
     private string sessionFilePath = null;
 
     private void Awake()
@@ -111,7 +132,7 @@ public class TrajectoryLogger : MonoBehaviour
             if (Camera.main != null)
             {
                 headTransform = Camera.main.transform;
-                Debug.LogWarning("[TrajectoryLogger] Head Transform was not assigned — falling back to " +
+                Debug.LogWarning("[TrajectoryLogger] Head Transform was not assigned - falling back to " +
                                   "Camera.main. Assign it explicitly in the Inspector to be safe.");
             }
             else
@@ -130,7 +151,7 @@ public class TrajectoryLogger : MonoBehaviour
         {
             StopCoroutine(recordingRoutine);
             recordingRoutine = null;
-            Debug.Log("[TrajectoryLogger] Recording interrupted (scene stopped or object disabled) — discarding, not saved.");
+            Debug.Log("[TrajectoryLogger] Recording interrupted (scene stopped or object disabled) - discarding, not saved.");
         }
 
         if (outcomeTimeoutRoutine != null)
@@ -145,8 +166,6 @@ public class TrajectoryLogger : MonoBehaviour
         participantId = id;
     }
 
-    /// <summary>Call this to start a fresh session, e.g. for a new participant.
-    /// This also starts a brand new session CSV file.</summary>
     public void ResetSession(string newParticipantId = null)
     {
         if (!string.IsNullOrEmpty(newParticipantId))
@@ -156,7 +175,7 @@ public class TrajectoryLogger : MonoBehaviour
         trialNumber = 0;
         successfulShotCount = 0;
         pendingTrajectory = null;
-        sessionFilePath = null; // forces a new session file to be created on next save
+        sessionFilePath = null;
         Debug.Log($"[TrajectoryLogger] Session reset. Participant: {participantId}");
     }
 
@@ -195,7 +214,7 @@ public class TrajectoryLogger : MonoBehaviour
 
         if (currentTrajectory.Count < minimumSamplesToSave)
         {
-            Debug.LogWarning($"[TrajectoryLogger] Discarded — only {currentTrajectory.Count} samples " +
+            Debug.LogWarning($"[TrajectoryLogger] Discarded - only {currentTrajectory.Count} samples " +
                               $"(minimum {minimumSamplesToSave} required). Not saved. Does not count toward attempts.");
             return;
         }
@@ -204,11 +223,44 @@ public class TrajectoryLogger : MonoBehaviour
         pendingTrialNumber = trialNumber;
         trialNumber++;
 
+        if (OnThrowReadyForPrediction != null)
+        {
+            OnThrowReadyForPrediction.Invoke(ConvertToPredictionSamples(pendingTrajectory));
+        }
+
         if (outcomeTimeoutRoutine != null)
         {
             StopCoroutine(outcomeTimeoutRoutine);
         }
         outcomeTimeoutRoutine = StartCoroutine(OutcomeTimeoutFallback());
+    }
+
+    private List<PredictionSample> ConvertToPredictionSamples(List<Sample> trajectory)
+    {
+        var result = new List<PredictionSample>(trajectory.Count);
+        foreach (var s in trajectory)
+        {
+            result.Add(new PredictionSample
+            {
+                hand_x = s.x,
+                hand_y = s.y,
+                hand_z = s.z,
+                hand_rot_x = s.rotX,
+                hand_rot_y = s.rotY,
+                hand_rot_z = s.rotZ,
+                hand_rot_w = s.rotW,
+                linear_vx = s.velX,
+                linear_vy = s.velY,
+                linear_vz = s.velZ,
+                linear_ax = s.accX,
+                linear_ay = s.accY,
+                linear_az = s.accZ,
+                angular_vx = s.angVelX,
+                angular_vy = s.angVelY,
+                angular_vz = s.angVelZ
+            });
+        }
+        return result;
     }
 
     private IEnumerator OutcomeTimeoutFallback()
@@ -217,7 +269,7 @@ public class TrajectoryLogger : MonoBehaviour
 
         if (pendingTrajectory != null)
         {
-            Debug.Log($"[TrajectoryLogger] No outcome reported within {outcomeTimeoutSeconds}s — " +
+            Debug.Log($"[TrajectoryLogger] No outcome reported within {outcomeTimeoutSeconds}s - " +
                       "auto-labeling as 'Miss'.");
             FinalizeAndSave("Miss");
         }
@@ -241,7 +293,7 @@ public class TrajectoryLogger : MonoBehaviour
 
         if (outcome == "Made" && SessionComplete)
         {
-            Debug.Log($"[TrajectoryLogger] Target reached — session complete at {successfulShotCount} makes " +
+            Debug.Log($"[TrajectoryLogger] Target reached - session complete at {successfulShotCount} makes " +
                       $"over {trialNumber} total attempts.");
         }
     }
@@ -273,15 +325,11 @@ public class TrajectoryLogger : MonoBehaviour
 
             if (useRealPhysics)
             {
-                // Ball has been thrown — real physics velocity is meaningful now.
                 vel = trackedRigidbody.velocity;
                 angVel = trackedRigidbody.angularVelocity;
             }
             else if (havePreviousSample)
             {
-                // Ball is still held (kinematic) — derive velocity/angular
-                // velocity manually from how far it moved/rotated since the
-                // last sample, so the "wind-up" swing isn't logged as zero.
                 vel = (pos - previousPosition) / sampleInterval;
 
                 Quaternion deltaRot = rot * Quaternion.Inverse(previousRotation);
@@ -342,10 +390,6 @@ public class TrajectoryLogger : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Appends one throw's samples as rows into the single running session
-    /// CSV, creating the file (with header) the first time it's called.
-    /// </summary>
     private void AppendTrajectoryToSessionCsv(List<Sample> trajectory, int forTrialNumber, string outcome)
     {
         if (trajectory == null || trajectory.Count == 0)
