@@ -13,6 +13,8 @@ public class CompanionController : MonoBehaviour
     [Header("References")]
     public AICoachClient aiClient;
 
+    public GhostHandAnimator ghostHand;
+
     [Header("Typewriter Effect")]
     public float typingSpeed = 0.03f;
 
@@ -67,6 +69,8 @@ public class CompanionController : MonoBehaviour
             displayMessage = $"Error: {response.error_type}\n\n{response.feedback}";
             audioFileName = $"{response.error_type}.mp3";
         }
+
+        if (ghostHand != null) ghostHand.ShowPerfectThrow();
 
         // 1. Visual Typewriter
         StartCoroutine(TypeText(displayMessage));

@@ -50,6 +50,8 @@ public class KeyboardGrabThrow : MonoBehaviour
     [Header("Data Logging")]
     [SerializeField] private TrajectoryLogger trajectoryLogger;
 
+    public static int LastThrowState = 2; // 1=Left, 2=Right, 3=Both
+
     private Rigidbody rb;
     private bool isLeftHeld = false;
     private bool isRightHeld = false;
@@ -227,8 +229,10 @@ public class KeyboardGrabThrow : MonoBehaviour
         rb.angularVelocity = finalAngularVelocity;
 
         trajectoryLogger?.StopRecordingAndSave();
+        LastThrowState = previousGrabState; // <--- ADD THIS LINE HERE
         previousGrabState = 0; // Reset
 
+      
         Debug.Log($"[KeyboardGrabThrow] Shot Released! Speed: {finalSpeed:F2} m/s " +
                   $"({(usedManualTier ? "manual tier" : "swipe-derived")}), " +
                   $"AimBias: {aimBias:F2}");

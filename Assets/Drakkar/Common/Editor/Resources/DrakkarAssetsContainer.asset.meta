@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 149f7bb64c1a27a449ada97542e6bea8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 302282
+  packageName: Drakkar Events
+  packageVersion: 1.0.10
+  assetPath: Assets/Drakkar/Common/Editor/Resources/DrakkarAssetsContainer.asset
+  uploadId: 729365
