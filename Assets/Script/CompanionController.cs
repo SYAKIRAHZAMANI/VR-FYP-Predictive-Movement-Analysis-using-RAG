@@ -64,10 +64,11 @@ public class CompanionController : MonoBehaviour
             displayMessage = "Nice shot!\n\n" + response.feedback;
             audioFileName = "Made.mp3";
         }
-        else
+       else
         {
-            displayMessage = $"Error: {response.error_type}\n\n{response.feedback}";
-            audioFileName = $"{response.error_type}.mp3";
+            // Just show the natural language coaching tip! No raw error labels.
+            displayMessage = response.feedback; 
+            audioFileName = $"{response.error_type}.mp3"; // Keep this so the audio still finds the right file
         }
 
         if (ghostHand != null) ghostHand.ShowPerfectThrow();

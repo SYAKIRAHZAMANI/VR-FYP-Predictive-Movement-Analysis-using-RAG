@@ -1,1 +1,0 @@
-Main onboarding scene to directly play with VG and have samples of all the scripts.
