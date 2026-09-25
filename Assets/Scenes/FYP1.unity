@@ -226,8 +226,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handAnimator: {fileID: 63259168}
   parameterName: Grip
+  isLeftHand: 0
   gripTarget: 0.106
-  triggerKey: 324
 --- !u!1 &83523613
 GameObject:
   m_ObjectHideFlags: 0
@@ -346,7 +346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &94508949
 Transform:
   m_ObjectHideFlags: 0
@@ -920,8 +920,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handAnimator: {fileID: 496536984}
   parameterName: Grip
+  isLeftHand: 0
   gripTarget: 0.55
-  triggerKey: 323
 --- !u!1 &822451719
 GameObject:
   m_ObjectHideFlags: 0
@@ -5024,7 +5024,7 @@ MonoBehaviour:
   m_SortNearTargetsAfterTargetFilter: 0
   m_EnableFarCasting: 1
   m_FarInteractionCaster: {fileID: 3723902237805464856}
-  m_FarAttachMode: 1
+  m_FarAttachMode: 0
   m_EnableUIInteraction: 1
   m_BlockUIOnInteractableSelection: 1
   m_UIHoverEntered:
@@ -15956,6 +15956,8 @@ GameObject:
   - component: {fileID: 3685398730451039546}
   - component: {fileID: 3685398730451039547}
   - component: {fileID: 3685398730451039548}
+  - component: {fileID: 3685398730451039549}
+  - component: {fileID: 3685398730451039550}
   m_Layer: 0
   m_Name: BasketBall
   m_TagString: Ball
@@ -49980,7 +49982,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
   m_Name: 
@@ -50091,7 +50093,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  m_ThrowVelocityScale: 1.5
+  m_ThrowVelocityScale: 1
   m_ThrowAngularVelocityScale: 1
   m_ForceGravityOnDetach: 0
   m_UnparentTransformOnGrab: 1
@@ -50170,7 +50172,7 @@ MonoBehaviour:
   minimumSamplesToSave: 10
   outcomeTimeoutSeconds: 6
   outputFolderName: TrajectoryData
-  participantId: real_data_v1
+  participantId: labreal1
   trialNumber: 0
   targetSuccessfulShots: 40
   successfulShotCount: 0
@@ -50182,7 +50184,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31295f641536c8e43944b6a30bda25d2, type: 3}
   m_Name: 
@@ -50321,6 +50323,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   backendUrl: http://127.0.0.1:8000/predict_and_coach
   requestTimeoutSeconds: 60
+--- !u!114 &3685398730451039549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1135225583635718187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f428b95f14c89fc4f8d7f4fabd2bfa9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3685398730451039550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1135225583635718187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f731ad7eb65552344b56a635c5ed9015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  throwPowerMultiplier: 1.5
+  upwardArcAssist: 0.5
+  respawnDelay: 5
+  customSpawnPoint: {fileID: 0}
+  trajectoryLogger: {fileID: 3685398730451039545}
 --- !u!1 &3686870408465839104
 GameObject:
   m_ObjectHideFlags: 0
@@ -94986,7 +95017,7 @@ MonoBehaviour:
   m_SortNearTargetsAfterTargetFilter: 0
   m_EnableFarCasting: 1
   m_FarInteractionCaster: {fileID: 5962050000610284423}
-  m_FarAttachMode: 1
+  m_FarAttachMode: 0
   m_EnableUIInteraction: 1
   m_BlockUIOnInteractableSelection: 1
   m_UIHoverEntered:
