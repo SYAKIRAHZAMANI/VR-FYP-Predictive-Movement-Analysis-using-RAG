@@ -14,7 +14,7 @@ public class GhostHandAnimator : MonoBehaviour
 
     [Header("Animation Settings")]
     public float throwMotionDuration = 0.5f; // Fast, realistic arm extension
-    public float holdDuration = 6.0f;        // How long to keep the hologram on screen
+    public float holdDuration = 3.0f;        // How long to keep the hologram on screen
 
     // Hand movement (short, realistic arm extension)
     private Vector3 startOffset = new Vector3(0.0f, -0.4f, 0.3f); // Chest level
@@ -22,25 +22,17 @@ public class GhostHandAnimator : MonoBehaviour
 
     private LineRenderer trajectoryLine;
 
-
-      // Add references to the Ghost Hand Animators
-    private Animator leftAnimator;
-    private Animator rightAnimator;
-
     private void Awake()
     {
+        // Programmatically create the "Tube" for the ball's ideal path
         trajectoryLine = gameObject.AddComponent<LineRenderer>();
         trajectoryLine.startWidth = 0.04f;
         trajectoryLine.endWidth = 0.04f;
         trajectoryLine.enabled = false;
 
-        // Get the Animators from the ghost models
-        if (leftGhostMesh != null) leftAnimator = leftGhostMesh.GetComponent<Animator>();
-        if (rightGhostMesh != null) rightAnimator = rightGhostMesh.GetComponent<Animator>();
-
         HideHands();
     }
-    
+
     public void ShowPerfectThrow()
     {
         StopAllCoroutines();
@@ -73,25 +65,24 @@ public class GhostHandAnimator : MonoBehaviour
         // 3. Animate the hand doing the short, realistic throw
         while (elapsed < throwMotionDuration)
         {
+            float t = elapsed / throwMotionDuration;
+            float easeT = Mathf.SmoothStep(0, 1, t);
 
-         float t = elapsed / throwMotionDuration;
-         float easeT = Mathf.SmoothStep(0, 1, t);
+            // Move the parent rig forward
+            transform.position = Vector3.Lerp(startPos, endPos, easeT);
+            transform.rotation = Quaternion.Slerp(startRot, endRot, easeT);
 
-        transform.position = Vector3.Lerp(startPos, endPos, easeT);
-        transform.rotation = Quaternion.Slerp(startRot, endRot, easeT);
+            // --- THE TRUE WRIST SNAP ---
+            // Bend the wrist back (-30 deg) at the start, and snap it forward (60 deg) at release!
+            float wristAngle = Mathf.Lerp(-30f, 60f, easeT);
+            Quaternion wristFlick = Quaternion.Euler(wristAngle, 0, 0);
 
-        // --- SKELETAL ARTICULATION ---
-        // Fingers start curled on the ball (0.6), and dynamically open at release (0.0)!
-        float dynamicGrip = Mathf.Lerp(0.6f, 0.0f, t);
-        if (leftAnimator != null) leftAnimator.SetFloat("Grip", dynamicGrip);
-        if (rightAnimator != null) rightAnimator.SetFloat("Grip", dynamicGrip);
+            if (leftGhostMesh.activeSelf) leftGhostMesh.transform.localRotation = wristFlick;
+            if (rightGhostMesh.activeSelf) rightGhostMesh.transform.localRotation = wristFlick;
 
-        elapsed += Time.deltaTime;
-        yield return null;
-
+            elapsed += Time.deltaTime;
+            yield return null;
         }
-
-
 
         // Snap to final follow-through position
         transform.position = endPos;

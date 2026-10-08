@@ -17,6 +17,8 @@ public class BasketDetector : MonoBehaviour
     [Header("Scoreboard UI")]
     [Tooltip("Drag your TextMeshPro component here to show the score")]
     [SerializeField] private TextMeshProUGUI scoreText;
+   
+    public static System.Action OnPhysicalMadeShot;
 
     private bool passedTop = false;
     private float topTriggerTime = 0f;
@@ -27,6 +29,7 @@ public class BasketDetector : MonoBehaviour
     {
         // Set initial score display when the game starts
         UpdateScoreboard();
+
     }
 
     private void Update()
@@ -59,6 +62,7 @@ public class BasketDetector : MonoBehaviour
 
                 // Update the floating screen!
                 UpdateScoreboard();
+                OnPhysicalMadeShot?.Invoke();
 
                 // Report back to the TrajectoryLogger so the CSV is tagged "Made"
                 var logger = otherBall.GetComponent<TrajectoryLogger>();

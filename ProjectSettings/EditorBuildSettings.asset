@@ -8,4 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/FYP1.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: f467ac842d31fe74c8298e3cdca060ad,
+      type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 7fa564ea5c1331949b9556733fb6c5f1,
+      type: 2}

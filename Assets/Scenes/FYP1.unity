@@ -346,7 +346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &94508949
 Transform:
   m_ObjectHideFlags: 0
@@ -922,6 +922,107 @@ MonoBehaviour:
   parameterName: Grip
   isLeftHand: 0
   gripTarget: 0.55
+--- !u!1 &703124025
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 703124026}
+  - component: {fileID: 703124029}
+  - component: {fileID: 703124028}
+  - component: {fileID: 703124027}
+  m_Layer: 5
+  m_Name: StudySetupCanvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &703124026
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 703124025}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1803483785772835859}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &703124027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 703124025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &703124028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 703124025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UiScaleMode: 0
+  m_ReferencePixelsPerUnit: 100
+  m_ScaleFactor: 1
+  m_ReferenceResolution: {x: 800, y: 600}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 0
+  m_PhysicalUnit: 3
+  m_FallbackScreenDPI: 96
+  m_DefaultSpriteDPI: 96
+  m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 1
+--- !u!223 &703124029
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 703124025}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
 --- !u!1 &822451719
 GameObject:
   m_ObjectHideFlags: 0
@@ -2143,7 +2244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.047169805, g: 0.046947304, b: 0.046947304, a: 0.96862745}
+  m_Color: {r: 0.047169805, g: 0.046947304, b: 0.046947304, a: 0.98039216}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -24801,7 +24902,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 703124026}
   m_Father: {fileID: 1803483785691789362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!81 &1803483785772835860
@@ -49982,7 +50084,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
   m_Name: 
@@ -49993,7 +50095,7 @@ MonoBehaviour:
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
-  m_SelectMode: 0
+  m_SelectMode: 1
   m_FocusMode: 1
   m_CustomReticle: {fileID: 0}
   m_AllowGazeInteraction: 0
@@ -50140,7 +50242,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c17dfeb8d69b03444a2b3cdae51fd978, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -50172,7 +50274,7 @@ MonoBehaviour:
   minimumSamplesToSave: 10
   outcomeTimeoutSeconds: 6
   outputFolderName: TrajectoryData
-  participantId: labreal1
+  participantId: test2
   trialNumber: 0
   targetSuccessfulShots: 40
   successfulShotCount: 0
@@ -50184,7 +50286,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31295f641536c8e43944b6a30bda25d2, type: 3}
   m_Name: 
@@ -50330,7 +50432,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f428b95f14c89fc4f8d7f4fabd2bfa9d, type: 3}
   m_Name: 
@@ -50342,14 +50444,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135225583635718187}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f731ad7eb65552344b56a635c5ed9015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   throwPowerMultiplier: 1.5
   upwardArcAssist: 0.5
-  respawnDelay: 5
+  minimumThrowSpeedThreshold: 2.5
+  throwRespawnDelay: 4
+  idleFloorRespawnDelay: 3
   customSpawnPoint: {fileID: 0}
   trajectoryLogger: {fileID: 3685398730451039545}
 --- !u!1 &3686870408465839104
@@ -58559,7 +58663,7 @@ PrefabInstance:
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.57
+      value: -2.1992185
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
@@ -58569,27 +58673,27 @@ PrefabInstance:
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 36.68
+      value: 36.682568
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.9784382
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.20654014
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
@@ -58599,7 +58703,7 @@ PrefabInstance:
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -23.839
       objectReference: {fileID: 0}
     - target: {fileID: 4336938371776195469, guid: 85906bcee8198914c9be08c27a11bace,
         type: 3}
@@ -106281,6 +106385,8 @@ MonoBehaviour:
   canvasTransform: {fileID: 83523614}
   aiClient: {fileID: 3685398730451039548}
   ghostHand: {fileID: 392131437}
+  useBaselineStaticMode: 1
+  ballFlightDuration: 1.8
   typingSpeed: 0.03
   enableVoice: 1
   backendAudioBaseUrl: http://127.0.0.1:8000/audio/
