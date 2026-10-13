@@ -1,13 +1,10 @@
 using UnityEngine;
-using TMPro; // Required for TextMeshPro UI
+using TMPro;
 
 public class BasketDetector : MonoBehaviour
 {
     [Header("Detection Zones")]
-    [Tooltip("The trigger placed slightly ABOVE the rim")]
     [SerializeField] private Collider topTrigger;
-
-    [Tooltip("The trigger placed INSIDE the net")]
     [SerializeField] private Collider bottomTrigger;
 
     [Header("Detection Settings")]
@@ -15,30 +12,23 @@ public class BasketDetector : MonoBehaviour
     [SerializeField] private float maxTimeBetweenTriggers = 1.5f;
 
     [Header("Scoreboard UI")]
-    [Tooltip("Drag your TextMeshPro component here to show the score")]
     [SerializeField] private TextMeshProUGUI scoreText;
    
     public static System.Action OnPhysicalMadeShot;
 
     private bool passedTop = false;
     private float topTriggerTime = 0f;
+    private float lastScoreTime = 0f; // NEW: Prevent double scoring
 
     public int TotalMakes { get; private set; }
 
-    private void Start()
-    {
-        // Set initial score display when the game starts
-        UpdateScoreboard();
-
-    }
+    private void Start() { UpdateScoreboard(); }
 
     private void Update()
     {
-        // Reset the top-pass state if the ball took too long to reach the bottom trigger
         if (passedTop && (Time.time - topTriggerTime > maxTimeBetweenTriggers))
         {
             passedTop = false;
-            Debug.Log("[BasketDetector] Shot sequence timed out.");
         }
     }
 
@@ -51,34 +41,31 @@ public class BasketDetector : MonoBehaviour
             passedTop = true;
             topTriggerTime = Time.time;
         }
-        else if (trigger == bottomTrigger)
+        else if (trigger == bottomTrigger && passedTop)
         {
-            if (passedTop)
+            // NEW: Added 1.5s cooldown
+            if (Time.time - lastScoreTime > 1.5f)
             {
                 passedTop = false;
+                lastScoreTime = Time.time;
                 TotalMakes++;
-
-                Debug.Log($"[BasketDetector] SWISH! MADE SHOT #{TotalMakes}");
-
-                // Update the floating screen!
                 UpdateScoreboard();
+                
+                // Trigger Waspy's success logic
                 OnPhysicalMadeShot?.Invoke();
+                
+                // Reset Waspy's boredom timer
+                var coach = FindObjectOfType<CompanionController>();
+                if (coach) coach.ResetEncouragementTimer();
 
-                // Report back to the TrajectoryLogger so the CSV is tagged "Made"
                 var logger = otherBall.GetComponent<TrajectoryLogger>();
-                if (logger != null)
-                {
-                    logger.RecordOutcome("Made");
-                }
+                if (logger != null) logger.RecordOutcome("Made");
             }
         }
     }
 
     private void UpdateScoreboard()
     {
-        if (scoreText != null)
-        {
-            scoreText.text = $"SCORE\n{TotalMakes}";
-        }
+        if (scoreText != null) scoreText.text = $"SCORE\n{TotalMakes}";
     }
 }

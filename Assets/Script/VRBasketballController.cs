@@ -81,6 +81,12 @@ public class VRBasketballController : MonoBehaviour
             respawnCoroutine = null;
         }
 
+        
+        // This automatically picks whichever controller is interacting with the ball!
+        // Whether it's Left or Right, this will link to it.
+        activeControllerTransform = args.interactorObject.transform;
+
+
         // Only start recording kinematics
         trajectoryLogger?.BeginRecording();
     }
