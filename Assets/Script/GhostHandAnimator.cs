@@ -41,8 +41,11 @@ public class GhostHandAnimator : MonoBehaviour
 
     private IEnumerator AnimateThrowAndArc()
     {
-        // 1. Setup Visibility
-        int handState = KeyboardGrabThrow.LastThrowState;
+        // 1. Setup Visibility (Checks VR controller first, fallback to Keyboard simulator)
+        int handState = VRBasketballController.LastThrowState;
+        if (handState <= 0) handState = KeyboardGrabThrow.LastThrowState;
+        if (handState <= 0) handState = 2; // Default Right hand
+
         leftGhostMesh.SetActive(handState == 1 || handState == 3);
         rightGhostMesh.SetActive(handState == 2 || handState == 3);
         trajectoryLine.enabled = false;

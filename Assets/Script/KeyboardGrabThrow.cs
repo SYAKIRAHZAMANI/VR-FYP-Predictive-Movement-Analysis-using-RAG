@@ -229,7 +229,8 @@ public class KeyboardGrabThrow : MonoBehaviour
         rb.angularVelocity = finalAngularVelocity;
 
         trajectoryLogger?.StopRecordingAndSave();
-        LastThrowState = previousGrabState; // <--- ADD THIS LINE HERE
+        LastThrowState = previousGrabState;
+        VRBasketballController.LastThrowState = previousGrabState;
         previousGrabState = 0; // Reset
 
       

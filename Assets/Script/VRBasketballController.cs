@@ -25,6 +25,8 @@ public class VRBasketballController : MonoBehaviour
     [Header("References")]
     public TrajectoryLogger trajectoryLogger;
 
+    public static int LastThrowState = 2; // 1 = Left, 2 = Right, 3 = Both
+
     private Rigidbody rb;
     private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grabInteractable;
     private Transform activeControllerTransform;
@@ -81,14 +83,32 @@ public class VRBasketballController : MonoBehaviour
             respawnCoroutine = null;
         }
 
-        
-        // This automatically picks whichever controller is interacting with the ball!
-        // Whether it's Left or Right, this will link to it.
         activeControllerTransform = args.interactorObject.transform;
-
+        DetectThrowingHand(args.interactorObject.transform);
 
         // Only start recording kinematics
         trajectoryLogger?.BeginRecording();
+    }
+
+    private void DetectThrowingHand(Transform interactorTransform)
+    {
+        Transform current = interactorTransform;
+        while (current != null)
+        {
+            string nameLower = current.name.ToLower();
+            if (nameLower.Contains("left"))
+            {
+                LastThrowState = 1;
+                return;
+            }
+            if (nameLower.Contains("right"))
+            {
+                LastThrowState = 2;
+                return;
+            }
+            current = current.parent;
+        }
+        LastThrowState = 2;
     }
 
     private void Update()
