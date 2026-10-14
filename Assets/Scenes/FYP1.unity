@@ -50274,7 +50274,7 @@ MonoBehaviour:
   minimumSamplesToSave: 10
   outcomeTimeoutSeconds: 6
   outputFolderName: TrajectoryData
-  participantId: 'P04 STATIC '
+  participantId: P08 STATIC
   trialNumber: 0
   targetSuccessfulShots: 10
   successfulShotCount: 0
